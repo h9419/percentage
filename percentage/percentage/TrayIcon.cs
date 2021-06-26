@@ -10,8 +10,8 @@ namespace percentage
         [DllImport("user32.dll", CharSet=CharSet.Auto)]
         static extern bool DestroyIcon(IntPtr handle);
 
-        private const int fontSize = 18;
-        private const string font = "Segoe UI";
+        private const int fontSize = 16;
+        private const string font = "Comic Sans";
 
         private NotifyIcon notifyIcon;
 
@@ -31,27 +31,13 @@ namespace percentage
             notifyIcon.ContextMenu = contextMenu;
             notifyIcon.Visible = true;
 
+
+            TimerTick(null, null);
+
             Timer timer = new Timer();
-            timer.Interval = 1000;
+            timer.Interval = 60*1000;
             timer.Tick += new EventHandler(TimerTick);
             timer.Start();
-        }
-
-        private Bitmap GetTextBitmap(String text, Font font, Color fontColor)
-        {
-            SizeF imageSize = GetStringImageSize(text, font);
-            Bitmap bitmap = new Bitmap((int)imageSize.Width, (int)imageSize.Height);
-            using (Graphics graphics = Graphics.FromImage(bitmap))
-            {
-                graphics.Clear(Color.FromArgb(0, 0, 0, 0));
-                using (Brush brush = new SolidBrush(fontColor))
-                {
-                    graphics.DrawString(text, font, brush, 0, 0);
-                    graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAlias;
-                    graphics.Save();
-                }
-            }
-            return bitmap;
         }
 
         private static SizeF GetStringImageSize(string text, Font font)
@@ -67,30 +53,31 @@ namespace percentage
             notifyIcon.Dispose();
             Application.Exit();
         }
-
         private void TimerTick(object sender, EventArgs e)
         {
             PowerStatus powerStatus = SystemInformation.PowerStatus;
-            String percentage = (powerStatus.BatteryLifePercent * 100).ToString();
+            String percentage = ((int)(powerStatus.BatteryLifePercent * 100)).ToString();
             bool isCharging = SystemInformation.PowerStatus.PowerLineStatus == PowerLineStatus.Online;
-            String bitmapText = isCharging ? percentage + "*" : percentage;
-            using (Bitmap bitmap = new Bitmap(GetTextBitmap(bitmapText, new Font(font, fontSize), Color.White)))
-            {
-                System.IntPtr intPtr = bitmap.GetHicon();
-                try
-                {
-                    using (Icon icon = Icon.FromHandle(intPtr))
-                    {
-                        notifyIcon.Icon = icon;
-                        String toolTipText = percentage + "%" + (isCharging ? " Charging" : "");
-                        notifyIcon.Text = toolTipText;
-                    }
-                }
-                finally
-                {
-                    DestroyIcon(intPtr);
-                }
-            }
+            // The "+" part will only be visible when percentage is single digit
+            String bitmapText = isCharging ? percentage + "+" : percentage;
+
+            // Redone this part to make the font more readable
+            Font fontToUse = new Font(font, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+            Brush brushToUse = new SolidBrush(Color.White);
+            Bitmap bitmap = new Bitmap(16, 16);
+            Graphics g = System.Drawing.Graphics.FromImage(bitmap);
+
+            g.Clear(Color.Transparent);
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.SingleBitPerPixelGridFit;
+            g.DrawString(bitmapText, fontToUse, brushToUse, -4, -2);
+            IntPtr hIcon = bitmap.GetHicon();
+
+            notifyIcon.Icon = Icon.FromHandle(hIcon);
+
+            DestroyIcon(hIcon);
+
+            String toolTipText = percentage + "%" + (isCharging ? " Charging" : "");
+            notifyIcon.Text = toolTipText;
         }
     }
 }
