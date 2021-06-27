@@ -10,9 +10,11 @@ namespace percentage
         [DllImport("user32.dll", CharSet=CharSet.Auto)]
         static extern bool DestroyIcon(IntPtr handle);
 
-        private const int fontSize = 64;
+        private const int fontSize = 16;
         // private const string font = "Comic Sans";
         private const string font = "Segoe UI";
+        private const float smallFontSise = fontSize * 2 / 3;
+        private const string smallFont = "Comic Sans";
 
         private string prevPercentage;
         private bool prevIsCharging;
@@ -58,7 +60,11 @@ namespace percentage
             prevPercentage = percentage;
             prevIsCharging = isCharging;
             // Redone this part to make the font more readable
-            Font fontToUse = new Font(font, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+            Font fontToUse;
+            if (percentage.Length < 3)
+                fontToUse = new Font(font, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
+            else // For 100% state, Comic Sans is easier to display with small amount of pixels
+                fontToUse = new Font(smallFont, smallFontSise, FontStyle.Regular, GraphicsUnit.Pixel);
             Brush brushToUse = new SolidBrush(Color.White);
             Bitmap bitmap = new Bitmap(fontSize, fontSize);
             Graphics g = System.Drawing.Graphics.FromImage(bitmap);
