@@ -25,14 +25,18 @@ namespace percentage
         {
             ContextMenu contextMenu = new ContextMenu();
             MenuItem menuItem = new MenuItem();
+            MenuItem menuItem2 = new MenuItem();
 
             notifyIcon = new NotifyIcon();
 
-            contextMenu.MenuItems.AddRange(new MenuItem[] { menuItem });
+            contextMenu.MenuItems.AddRange(new MenuItem[] { menuItem, menuItem2 });
 
             menuItem.Click += new System.EventHandler(MenuItemClick);
-            menuItem.Index = 0;
+            menuItem.Index = 1;
             menuItem.Text = "E&xit";
+            menuItem2.Click += new System.EventHandler(MenuItem2Click);
+            menuItem2.Index = 0;
+            menuItem2.Text = "R&efresh";
 
             notifyIcon.ContextMenu = contextMenu;
             notifyIcon.Visible = true;
@@ -48,6 +52,10 @@ namespace percentage
             notifyIcon.Visible = false;
             notifyIcon.Dispose();
             Application.Exit();
+        }
+        private void MenuItem2Click(object sender, EventArgs e)
+        {
+            prevPercentage+=1;
         }
         private void TimerTick(object sender, EventArgs e)
         {
